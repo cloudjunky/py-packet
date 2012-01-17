@@ -6,6 +6,7 @@ from impacket.ImpactPacket import TCPOption
 pcap = open_offline("/Users/michaelb/Downloads/SlowchopCaptures/small3.cap")
 
 decoder = EthDecoder()
+metrics = {}
 
 def callback(hdr,data):
     packet = decoder.decode(data)
@@ -14,7 +15,7 @@ def callback(hdr,data):
         src_ip = l2.get_ip_src()
         dst_ip = l2.get_ip_dst()
         ip_ttl = l2.get_ip_ttl()
-        ip_df = l2.get_ip_df()
+        ip_df = l2.get_ip_df() #16 bit field outputs 16384 if set
         ip_hl = l2.get_ip_hl()
         l3 = l2.child()
         if isinstance(l3,TCP):
@@ -31,52 +32,69 @@ def callback(hdr,data):
 
 
               option_layout = []
+              option_numeric = []
               for option in l3.get_options():
-                   option_layout.append(option.get_kind())
+                   option_numeric.append(option.get_kind())
 
                    if option.get_kind() == TCPOption.TCPOPT_EOL:
                        #TCP Option 0
-                       print "tcp_eol"
+                       option_layout.append('eol')
 
-                   if option.get_kind() == TCPOption.TCPOPT_NOP:
+                   elif option.get_kind() == TCPOption.TCPOPT_NOP:
                        #TCP Option 1
-                       print "nop"
+                       option_layout.append('nop')
 
-                   if option.get_kind() == TCPOption.TCPOPT_MAXSEG:
+                   elif option.get_kind() == TCPOption.TCPOPT_MAXSEG:
                        #TCP Option 2
-                       print "max_seg"
-                       print "MSS: %s" % option.get_mss()
+                       option_layout.append('mss')
+                       tcp_mss = option.get_mss()
 
-                   if option.get_kind() ==TCPOption.TCPOPT_WINDOW:
+                   elif option.get_kind() ==TCPOption.TCPOPT_WINDOW:
                        #TCP Option 3 - Window Scale
-                       print "scale"
+                       option_layout.append('scale')
                        print option.get_len()
 
-                   if option.get_kind() == TCPOption.TCPOPT_SACK_PERMITTED:
+                   elif option.get_kind() == TCPOption.TCPOPT_SACK_PERMITTED:
                        #TCP Option 4
-                       print "sack_permitted"
+                       option_layout.append('sok')
                    
-                   if option.get_kind() == TCPOption.TCPOPT_SACK:
+                   elif option.get_kind() == TCPOption.TCPOPT_SACK:
                        #TCP Option 5
-                       print "sack"
+                       option.layout.append('sack')
 
-                   if option.get_kind() == TCPOption.TCPOPT_TIMESTAMP:
+                   elif option.get_kind() == TCPOption.TCPOPT_TIMESTAMP:
                        print option.get_ts()
-                       print option.get_ts_echo()
+                       option_layout.append('ts')
+                       #print option.get_ts_echo()
                    
-                   if option.get_kind() == TCPOption.TCPOPT_SIGNATURE:
+                   elif option.get_kind() == TCPOption.TCPOPT_SIGNATURE:
                        #TCP Option 19
+                       option.layout.append('sig')
                        print "sig"
 
-              print "%s -> %s(%s)" % (src_ip, dst_ip, tcp_dst_port)
-              print "TTL:%s, DF:%s, Header Length: %s" % (ip_ttl, ip_df, ip_hl) 
-              print "Seq: %s, Flags: %s, Window: %s" % (tcp_seq, tcp_flags,
-                      tcp_window)
-              print "Header Size: %s, Size: %s" % (tcp_header_size, tcp_size)
-              print "Options: %s" % option_layout
+                   #Finish catch-all and add option number e.g. n?
+              
+              #Create dictionary for ip address and add metrics.
+              # If the key exists don't add the metric
+              # Print all IP's and metrics.
 
-           #print
+              if src_ip in metrics:
+                  print "Key exists"
+              else:
+                  metrics[src_ip] = option_layout 
 
-pcap.loop(10,callback)
+              #print metrics
+              
+              #print "%s -> %s(%s)" % (src_ip, dst_ip, tcp_dst_port)
+              #print "TTL:%s, DF:%s, Header Length: %s" % (ip_ttl, ip_df, ip_hl) 
+              #print "Seq: %s, Flags: %s, Window: %s" % (tcp_seq, tcp_flags,
+              #        tcp_window)
+              #print "Header Size: %s, Size: %s" % (tcp_header_size, tcp_size)
+              #print "Options: %s" % option_layout
+              #print "Options Numeric:" % option_numeric
+              #print "MSS: %s:" % tcp_mss
+
+
+pcap.loop(100,callback)
 
 print "Finished"
