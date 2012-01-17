@@ -18,7 +18,8 @@ def callback(hdr,data):
         ip_hl = l2.get_ip_hl()
         l3 = l2.child()
         if isinstance(l3,TCP):
-           if l3.get_SYN() == 1:
+            if l3.get_SYN()==1 and l3.get_ACK()==0 and l3.get_FIN() == 0:
+
               tcp_dst_port = l3.get_th_sport()
               tcp_src_port = l3.get_th_dport()
               tcp_seq = l3.get_th_seq()
@@ -26,16 +27,12 @@ def callback(hdr,data):
               tcp_window = l3.get_th_win()
               tcp_header_size = l3.get_header_size()
               tcp_size = l3.get_size()
-              #tcp_options = l3.get_padded_options()
-              # Padded options gives me more than is in the packet for some
-              # reason. Will check this later
-              print "%s -> %s(%s)" % (src_ip, dst_ip, tcp_dst_port)
-              print "TTL:%s, DF:%s, Header Length: %s" % (ip_ttl, ip_df, ip_hl) 
-              print "Seq: %s, Flags: %s, Window: %s" % (tcp_seq, tcp_flags,
-                      tcp_window)
-              print "Header Size: %s, Size: %s" % (tcp_header_size, tcp_size)
+              tcp_syn_bit = l3.get_flag(2)
+
+
+              option_layout = []
               for option in l3.get_options():
-                   print option.get_kind()
+                   option_layout.append(option.get_kind())
 
                    if option.get_kind() == TCPOption.TCPOPT_EOL:
                        #TCP Option 0
@@ -52,7 +49,7 @@ def callback(hdr,data):
 
                    if option.get_kind() ==TCPOption.TCPOPT_WINDOW:
                        #TCP Option 3 - Window Scale
-                       print "window"
+                       print "scale"
                        print option.get_len()
 
                    if option.get_kind() == TCPOption.TCPOPT_SACK_PERMITTED:
@@ -71,7 +68,14 @@ def callback(hdr,data):
                        #TCP Option 19
                        print "sig"
 
-           print
+              print "%s -> %s(%s)" % (src_ip, dst_ip, tcp_dst_port)
+              print "TTL:%s, DF:%s, Header Length: %s" % (ip_ttl, ip_df, ip_hl) 
+              print "Seq: %s, Flags: %s, Window: %s" % (tcp_seq, tcp_flags,
+                      tcp_window)
+              print "Header Size: %s, Size: %s" % (tcp_header_size, tcp_size)
+              print "Options: %s" % option_layout
+
+           #print
 
 pcap.loop(10,callback)
 
