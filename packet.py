@@ -52,7 +52,7 @@ def callback(hdr,data):
                    elif option.get_kind() ==TCPOption.TCPOPT_WINDOW:
                        #TCP Option 3 - Window Scale
                        option_layout.append('scale')
-                       print option.get_len()
+                       #print option.get_len()
 
                    elif option.get_kind() == TCPOption.TCPOPT_SACK_PERMITTED:
                        #TCP Option 4
@@ -63,7 +63,7 @@ def callback(hdr,data):
                        option.layout.append('sack')
 
                    elif option.get_kind() == TCPOption.TCPOPT_TIMESTAMP:
-                       print option.get_ts()
+                       #print option.get_ts()
                        option_layout.append('ts')
                        #print option.get_ts_echo()
                    
@@ -79,12 +79,10 @@ def callback(hdr,data):
               # Print all IP's and metrics.
 
               if src_ip in metrics:
-                  print "Key exists"
+                 pass 
               else:
                   metrics[src_ip] = option_layout 
 
-              #print metrics
-              
               #print "%s -> %s(%s)" % (src_ip, dst_ip, tcp_dst_port)
               #print "TTL:%s, DF:%s, Header Length: %s" % (ip_ttl, ip_df, ip_hl) 
               #print "Seq: %s, Flags: %s, Window: %s" % (tcp_seq, tcp_flags,
@@ -95,6 +93,7 @@ def callback(hdr,data):
               #print "MSS: %s:" % tcp_mss
 
 
-pcap.loop(100,callback)
+pcap.loop(1000,callback)
+print metrics
 
 print "Finished"
