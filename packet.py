@@ -30,7 +30,6 @@ def callback(hdr,data):
               tcp_size = l3.get_size()
               tcp_syn_bit = l3.get_flag(2)
 
-
               option_layout = []
               option_numeric = []
               for option in l3.get_options():
@@ -81,7 +80,7 @@ def callback(hdr,data):
               if src_ip in metrics:
                  pass 
               else:
-                  metrics[src_ip] = option_layout 
+                  metrics[src_ip] = tcp_window 
 
               #print "%s -> %s(%s)" % (src_ip, dst_ip, tcp_dst_port)
               #print "TTL:%s, DF:%s, Header Length: %s" % (ip_ttl, ip_df, ip_hl) 
