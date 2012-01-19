@@ -3,7 +3,7 @@ from impacket.ImpactDecoder import EthDecoder
 from impacket.ImpactPacket import IP, TCP, UDP, ICMP
 from impacket.ImpactPacket import TCPOption
 
-pcap = open_offline("/Users/michaelb/Downloads/SlowchopCaptures/small3.cap")
+pcap = open_offline("/home/michael/Downloads/SlowchopCaptures/0806.cap")
 
 decoder = EthDecoder()
 metrics = {}
@@ -56,7 +56,7 @@ def callback(hdr,data):
                    elif option.get_kind() == TCPOption.TCPOPT_SACK_PERMITTED:
                        #TCP Option 4
                        option_layout.append('sok')
-                   
+
                    elif option.get_kind() == TCPOption.TCPOPT_SACK:
                        #TCP Option 5
                        option.layout.append('sack')
@@ -65,25 +65,25 @@ def callback(hdr,data):
                        #print option.get_ts()
                        option_layout.append('ts')
                        #print option.get_ts_echo()
-                   
+
                    elif option.get_kind() == TCPOption.TCPOPT_SIGNATURE:
                        #TCP Option 19
                        option.layout.append('sig')
                        print "sig"
 
                    #Finish catch-all and add option number e.g. n?
-              
+
               #Create dictionary for ip address and add metrics.
               # If the key exists don't add the metric
               # Print all IP's and metrics.
 
               if src_ip in metrics:
-                 pass 
+                 pass
               else:
-                  metrics[src_ip] = tcp_window 
+                  metrics[src_ip] = "%s,%s" % (tcp_window,ip_ttl)
 
               #print "%s -> %s(%s)" % (src_ip, dst_ip, tcp_dst_port)
-              #print "TTL:%s, DF:%s, Header Length: %s" % (ip_ttl, ip_df, ip_hl) 
+              #print "TTL:%s, DF:%s, Header Length: %s" % (ip_ttl, ip_df, ip_hl)
               #print "Seq: %s, Flags: %s, Window: %s" % (tcp_seq, tcp_flags,
               #        tcp_window)
               #print "Header Size: %s, Size: %s" % (tcp_header_size, tcp_size)
@@ -92,7 +92,7 @@ def callback(hdr,data):
               #print "MSS: %s:" % tcp_mss
 
 
-pcap.loop(1000,callback)
-print metrics
+pcap.loop(0,callback)
+for k,v in metrics.items():
+  print "%s,%s" % (k,v)
 
-print "Finished"
